@@ -1,0 +1,18 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/src/Ambev.DeveloperEvaluation.Application/obj
+/src/Ambev.DeveloperEvaluation.Common/obj
+/src/Ambev.DeveloperEvaluation.Domain/obj
+/src/Ambev.DeveloperEvaluation.IoC/obj
+/src/Ambev.DeveloperEvaluation.ORM/obj
+/src/Ambev.DeveloperEvaluation.WebApi/obj
+/tests/Ambev.DeveloperEvaluation.Functional/bin
+/tests/Ambev.DeveloperEvaluation.Functional/obj
+/tests/Ambev.DeveloperEvaluation.Functional/obj/Debug/net8.0/.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+/tests/Ambev.DeveloperEvaluation.Integration/bin
+/tests/Ambev.DeveloperEvaluation.Integration/obj
+/tests/Ambev.DeveloperEvaluation.Unit/bin
+/tests/Ambev.DeveloperEvaluation.Unit/obj

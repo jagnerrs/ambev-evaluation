@@ -21,13 +21,12 @@ services:
   ambev.developerevaluation.database:
     container_name: ambev_developer_evaluation_database
     image: postgres:13
-
     environment:
       POSTGRES_DB: developer_evaluation
       POSTGRES_USER: developer
       POSTGRES_PASSWORD: ev@luAt10n
     ports:
-      - "5432"
+      - "5432:5432"
     restart: unless-stopped
 
   ambev.developerevaluation.nosql:

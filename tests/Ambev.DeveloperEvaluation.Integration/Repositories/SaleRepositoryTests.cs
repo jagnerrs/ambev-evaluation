@@ -46,11 +46,20 @@ public class SaleRepositoryTests : IDisposable
     public async Task GetNextSaleNumberAsync_ReturnsSequentialNumbers()
     {
         var number1 = await _sut.GetNextSaleNumberAsync();
-        var number2 = await _sut.GetNextSaleNumberAsync();
-
         number1.Should().StartWith("SALE-");
+
+        await _sut.CreateAsync(CreateSaleWithNumber(number1));
+
+        var number2 = await _sut.GetNextSaleNumberAsync();
         number2.Should().StartWith("SALE-");
         number2.Should().NotBe(number1);
+    }
+
+    private static Sale CreateSaleWithNumber(string saleNumber)
+    {
+        var sale = CreateSale();
+        sale.SaleNumber = saleNumber;
+        return sale;
     }
 
     [Fact(DisplayName = "DeleteAsync should remove sale")]

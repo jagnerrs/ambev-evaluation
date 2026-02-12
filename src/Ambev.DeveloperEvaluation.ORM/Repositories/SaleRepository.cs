@@ -52,7 +52,25 @@ public class SaleRepository : ISaleRepository
 
     public async Task<Sale> UpdateAsync(Sale sale, CancellationToken cancellationToken = default)
     {
-        _context.Sales.Update(sale);
+        var entry = _context.Entry(sale);
+        var keptItemIds = sale.SaleItems.Select(i => i.Id).ToHashSet();
+
+        if (entry.State == EntityState.Detached)
+        {
+            var itemsToDelete = await _context.SaleItems
+                .Where(i => i.SaleId == sale.Id && !keptItemIds.Contains(i.Id))
+                .ToListAsync(cancellationToken);
+            _context.SaleItems.RemoveRange(itemsToDelete);
+            _context.Sales.Update(sale);
+        }
+        else
+        {
+            var itemsToDelete = await _context.SaleItems
+                .Where(i => i.SaleId == sale.Id && !keptItemIds.Contains(i.Id))
+                .ToListAsync(cancellationToken);
+            _context.SaleItems.RemoveRange(itemsToDelete);
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
         return sale;
     }

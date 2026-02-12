@@ -1,12 +1,12 @@
-using System.Net;
-using System.Net.Http.Json;
-using System.Text.Json;
 using Ambev.DeveloperEvaluation.Domain.Enums;
 using Ambev.DeveloperEvaluation.WebApi;
 using Ambev.DeveloperEvaluation.WebApi.Common;
 using Ambev.DeveloperEvaluation.WebApi.Features.Auth.AuthenticateUserFeature;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Ambev.DeveloperEvaluation.Functional;
 
@@ -28,7 +28,7 @@ public static class AuthenticationHelper
     {
         var client = factory.CreateClient();
 
-        var email = $"{role.ToString()}_{new Random(100).Next()}@gmail.com";
+        var email = $"{role}_{Guid.NewGuid():N}@example.com";
         var password = "Test@1234";
 
         var createUserRequest = new
@@ -43,19 +43,20 @@ public static class AuthenticationHelper
 
         var createResponse = await client.PostAsJsonAsync("/api/users", createUserRequest);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        await createResponse.Content.ReadAsStringAsync(); 
 
         var authRequest = new { email, password };
         var authResponse = await client.PostAsJsonAsync("/api/auth", authRequest);
         authResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-        var authContent = await authResponse.Content.ReadFromJsonAsync<ApiResponseWithData<AuthenticateUserResponse>>(jsonOptions);
+        var authContent = await authResponse.Content.ReadFromJsonAsync<ApiResponseWithData<ApiResponseWithData<AuthenticateUserResponse>>>(jsonOptions);
         authContent.Should().NotBeNull();
-        authContent!.Data.Should().NotBeNull();
-        authContent.Data!.Token.Should().NotBeNullOrEmpty();
+        authContent!.Data!.Data!.Should().NotBeNull();
+        authContent.Data!.Data!.Token.Should().NotBeNullOrEmpty();
 
         var authenticatedClient = factory.CreateClient();
-        authenticatedClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {authContent.Data.Token}");
+        authenticatedClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {authContent.Data.Data.Token}");
 
         return authenticatedClient;
     }

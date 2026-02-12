@@ -71,6 +71,45 @@ public class UsersApiTests : IClassFixture<SalesWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
+    [Fact(DisplayName = "Get user with valid token returns 200")]
+    public async Task GetUser_WithAuth_Returns200()
+    {
+        var client = _factory.CreateClient();
+        var userId = await CreateUserAsync(client);
+        var authClient = await AuthenticationHelper.CreateAuthenticatedClientAsync(_factory, UserRole.Manager);
+
+        var response = await authClient.GetAsync($"/api/users/{userId}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact(DisplayName = "Auth with valid credentials returns 200 and token")]
+    public async Task Auth_ValidCredentials_Returns200WithToken()
+    {
+        var client = _factory.CreateClient();
+        var email = $"auth_{Guid.NewGuid():N}@example.com";
+        await CreateUserWithEmail(client, email);
+
+        var authResponse = await client.PostAsJsonAsync("/api/auth", new { email, password = "Test@1234" });
+
+        authResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    private static async Task CreateUserWithEmail(HttpClient client, string email)
+    {
+        var createRequest = new
+        {
+            username = "AuthTestUser",
+            password = "Test@1234",
+            phone = "11999999999",
+            email,
+            status = (int)UserStatus.Active,
+            role = (int)UserRole.Customer
+        };
+        var createResponse = await client.PostAsJsonAsync("/api/users", createRequest);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+    }
+
     private static async Task<Guid> CreateUserAsync(HttpClient client)
     {
         var email = $"user_{Guid.NewGuid():N}@example.com";

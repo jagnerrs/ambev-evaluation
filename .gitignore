@@ -24,3 +24,10 @@
 /src/Ambev.DeveloperEvaluation.IoC/bin/Debug/net8.0
 /src/Ambev.DeveloperEvaluation.ORM/bin/Debug/net8.0
 /src/Ambev.DeveloperEvaluation.WebApi/bin/Debug/net8.0
+/src/Ambev.DeveloperEvaluation.WebApi/bin/Release/net8.0
+/src/Ambev.DeveloperEvaluation.ORM/bin/Release/net8.0
+/TestResults/CoverageReport
+/src/Ambev.DeveloperEvaluation.Application/bin/Release/net8.0
+/src/Ambev.DeveloperEvaluation.Common/bin/Release/net8.0
+/src/Ambev.DeveloperEvaluation.Domain/bin/Release/net8.0
+/src/Ambev.DeveloperEvaluation.IoC/bin/Release/net8.0

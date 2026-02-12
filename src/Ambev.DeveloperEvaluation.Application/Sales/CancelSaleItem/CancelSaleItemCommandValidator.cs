@@ -11,5 +11,8 @@ public class CancelSaleItemCommandValidator : AbstractValidator<CancelSaleItemCo
     {
         RuleFor(x => x.SaleId).NotEmpty();
         RuleFor(x => x.ItemId).NotEmpty();
+        RuleFor(x => x.QuantityToCancel)
+            .GreaterThan(0)
+            .When(x => x.QuantityToCancel.HasValue);
     }
 }

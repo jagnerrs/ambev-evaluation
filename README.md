@@ -10,6 +10,20 @@ API for managing sales records with full CRUD operations, built with DDD (Domain
 
 ## Configuration
 
+### JWT Authentication
+
+The API uses JWT Bearer authentication. Configure the secret key in `appsettings.json`:
+
+```json
+{
+  "Jwt": {
+    "SecretKey": "YourSuperSecretKeyForJwtTokenGenerationThatShouldBeAtLeast32BytesLong"
+  }
+}
+```
+
+The secret key must be at least 32 characters for HS256.
+
 ### Database Connection
 
 The application uses PostgreSQL. Configure the connection string in `appsettings.json` or via environment variables.
@@ -36,16 +50,16 @@ docker-compose up -d ambev.developerevaluation.database
 
 ### 2. Apply Migrations
 
-From the solution root:
-
-```bash
-dotnet ef database update --project src/Ambev.DeveloperEvaluation.ORM --startup-project src/Ambev.DeveloperEvaluation.WebApi
-```
-
 If `dotnet-ef` is not installed:
 
 ```bash
 dotnet tool install --global dotnet-ef
+```
+
+From the solution root:
+
+```bash
+dotnet ef database update --project src/Ambev.DeveloperEvaluation.ORM --startup-project src/Ambev.DeveloperEvaluation.WebApi
 ```
 
 ### 3. Run the Application
@@ -57,6 +71,40 @@ dotnet run --project src/Ambev.DeveloperEvaluation.WebApi
 The API will be available at:
 - HTTP: http://localhost:5000 (or the port configured in launchSettings.json)
 - Swagger UI: http://localhost:5000/swagger (when running in Development)
+
+## Authentication
+
+The **Sales API** requires authentication via JWT Bearer token. The **Auth** and **Users** APIs are public for login and user registration.
+
+### Obtaining a Token
+
+1. Create a user (if needed) via `POST /api/users`
+2. Authenticate via `POST /api/auth`:
+
+```json
+{
+  "email": "user@example.com",
+  "password": "YourPassword123!"
+}
+```
+
+The response contains a `token` in the `data` object. Use this token to access protected endpoints.
+
+### Using the Token
+
+Include the token in the `Authorization` header:
+
+```
+Authorization: Bearer {seu_token}
+```
+
+### Swagger UI
+
+1. Open the Swagger UI at `/swagger`
+2. Click **Authorize**
+3. Enter the token in the format: `Bearer {seu_token}` or just `{seu_token}`
+4. Click **Authorize** and **Close**
+5. All requests to protected endpoints will now include the token
 
 ## Testing
 
@@ -78,7 +126,31 @@ coverage-report.bat
 
 ## API Endpoints
 
-### Sales API
+### Auth API (Public)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth` | Authenticate user and obtain JWT token |
+
+**Request body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "YourPassword123!"
+}
+```
+
+### Users API (Public)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/users` | Create a new user |
+| GET | `/api/users/{id}` | Get user by ID |
+| DELETE | `/api/users/{id}` | Delete a user |
+
+### Sales API (Requires Authentication)
+
+All endpoints below require the `Authorization: Bearer {token}` header.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|

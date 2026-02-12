@@ -1,5 +1,6 @@
 using Ambev.DeveloperEvaluation.Application.Sales.CancelSale;
 using Ambev.DeveloperEvaluation.Application.Sales.CancelSaleItem;
+using Ambev.DeveloperEvaluation.WebApi.Features.Sales.CancelSaleItem;
 using Ambev.DeveloperEvaluation.Application.Sales.CreateSale;
 using Ambev.DeveloperEvaluation.Application.Sales.DeleteSale;
 using Ambev.DeveloperEvaluation.Application.Sales.GetSale;
@@ -12,6 +13,7 @@ using Ambev.DeveloperEvaluation.WebApi.Features.Sales.ListSales;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.UpdateSale;
 using AutoMapper;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales;
@@ -21,6 +23,7 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class SalesController : BaseController
 {
     private readonly IMediator _mediator;
@@ -185,21 +188,27 @@ public class SalesController : BaseController
 
     /// <summary>
     /// Cancels a specific item within a sale.
+    /// Optionally provide quantity for partial cancellation; discount is recalculated for remaining quantity.
     /// </summary>
     [HttpPost("{id:guid}/items/{itemId:guid}/cancel")]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> CancelSaleItem([FromRoute] Guid id, [FromRoute] Guid itemId, CancellationToken cancellationToken)
+    public async Task<IActionResult> CancelSaleItem([FromRoute] Guid id, [FromRoute] Guid itemId, [FromBody] CancelSaleItemRequest? request = null, CancellationToken cancellationToken = default)
     {
         try
         {
-            var command = new CancelSaleItemCommand(id, itemId);
+            var command = new CancelSaleItemCommand(id, itemId, request?.Quantity);
             await _mediator.Send(command, cancellationToken);
             return Ok(new ApiResponse { Success = true, Message = "Sale item cancelled successfully" });
         }
         catch (KeyNotFoundException)
         {
             return NotFound(new ApiResponse { Success = false, Message = "Sale or item not found" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ApiResponse { Success = false, Message = ex.Message });
         }
     }
 }

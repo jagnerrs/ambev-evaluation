@@ -39,7 +39,7 @@ public class Sale
     }
 
     /// <summary>
-    /// Cancels a specific item within the sale.
+    /// Cancels a specific item within the sale (full cancellation).
     /// </summary>
     /// <param name="itemId">The ID of the item to cancel.</param>
     public void CancelItem(Guid itemId)
@@ -49,6 +49,27 @@ public class Sale
             return;
 
         item.IsCancelled = true;
+        RecalculateTotal();
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Reduces the quantity of an item and recalculates its discount and line total.
+    /// Caller must provide the new discount percent and line total based on the remaining quantity.
+    /// If remaining quantity is 0, the item is marked as cancelled.
+    /// </summary>
+    public void ReduceItemQuantity(Guid itemId, int newQuantity, decimal newDiscountPercent, decimal newLineTotal)
+    {
+        var item = SaleItems.FirstOrDefault(i => i.Id == itemId);
+        if (item == null)
+            return;
+
+        item.Quantity = newQuantity;
+        item.DiscountPercent = newDiscountPercent;
+        item.LineTotal = newLineTotal;
+        if (newQuantity <= 0)
+            item.IsCancelled = true;
+
         RecalculateTotal();
         UpdatedAt = DateTime.UtcNow;
     }

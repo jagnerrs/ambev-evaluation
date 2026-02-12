@@ -1,10 +1,14 @@
-﻿using Ambev.DeveloperEvaluation.Application.Users.CreateUser;
+using Ambev.DeveloperEvaluation.Application.Sales.ListSales;
+using Ambev.DeveloperEvaluation.Application.Users.CreateUser;
 using Ambev.DeveloperEvaluation.Application.Users.DeleteUser;
 using Ambev.DeveloperEvaluation.Application.Users.GetUser;
+using Ambev.DeveloperEvaluation.Application.Users.ListUsers;
 using Ambev.DeveloperEvaluation.WebApi.Common;
+using Ambev.DeveloperEvaluation.WebApi.Features.Sales.ListSales;
 using Ambev.DeveloperEvaluation.WebApi.Features.Users.CreateUser;
 using Ambev.DeveloperEvaluation.WebApi.Features.Users.DeleteUser;
 using Ambev.DeveloperEvaluation.WebApi.Features.Users.GetUser;
+using Ambev.DeveloperEvaluation.WebApi.Features.Users.ListUsers;
 using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -93,15 +97,18 @@ public class UsersController : BaseController
     }
 
     /// <summary>
-    /// Deletes a user by their ID
+    /// Deletes a user by their ID.
+    /// Requires the user to be authenticated and have the Admin role.
     /// </summary>
     /// <param name="id">The unique identifier of the user to delete</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Success response if the user was deleted</returns>
     [HttpDelete("{id}")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteUser([FromRoute] Guid id, CancellationToken cancellationToken)
     {
@@ -119,6 +126,31 @@ public class UsersController : BaseController
         {
             Success = true,
             Message = "User deleted successfully"
+        });
+    }
+
+    /// <summary>
+    /// Lists users with pagination.
+    /// </summary>
+    [HttpGet]
+    [ProducesResponseType(typeof(ApiResponseWithData<ListUsersResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ListUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
+    {
+        var command = new ListUsersCommand(page, pageSize);
+        var response = await _mediator.Send(command, cancellationToken);
+
+        return Ok(new ApiResponseWithData<ListUsersResponse>
+        {
+            Success = true,
+            Message = "Users retrieved successfully",
+            Data = new ListUsersResponse
+            {
+                Items = _mapper.Map<List<ListUserItemResponse>>(response.Items),
+                TotalCount = response.TotalCount,
+                CurrentPage = response.CurrentPage,
+                PageSize = response.PageSize,
+                TotalPages = response.TotalPages
+            }
         });
     }
 }

@@ -95,6 +95,46 @@ public class UsersApiTests : IClassFixture<SalesWebApplicationFactory>
         authResponse.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
+    [Fact(DisplayName = "ListUsers with Admin role returns 200")]
+    public async Task ListUsers_AdminRole_Returns200()
+    {
+        var adminClient = await AuthenticationHelper.CreateAuthenticatedClientAsync(_factory, UserRole.Admin);
+
+        var response = await adminClient.GetAsync("/api/users?page=1&pageSize=10");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact(DisplayName = "ListUsers with Manager role returns 200")]
+    public async Task ListUsers_ManagerRole_Returns200()
+    {
+        var managerClient = await AuthenticationHelper.CreateAuthenticatedClientAsync(_factory, UserRole.Manager);
+
+        var response = await managerClient.GetAsync("/api/users?page=1&pageSize=10");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact(DisplayName = "ListUsers with Customer role returns 403")]
+    public async Task ListUsers_CustomerRole_Returns403()
+    {
+        var customerClient = await AuthenticationHelper.CreateAuthenticatedClientAsync(_factory, UserRole.Customer);
+
+        var response = await customerClient.GetAsync("/api/users?page=1&pageSize=10");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact(DisplayName = "ListUsers without token returns 401")]
+    public async Task ListUsers_WithoutToken_Returns401()
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.GetAsync("/api/users?page=1&pageSize=10");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
     private static async Task CreateUserWithEmail(HttpClient client, string email)
     {
         var createRequest = new

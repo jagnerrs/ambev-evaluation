@@ -74,6 +74,14 @@ public class UserRepositoryTests : IDisposable
         result!.Id.Should().Be(user.Id);
     }
 
+    [Fact(DisplayName = "GetByEmailAsync should return null when email does not exist")]
+    public async Task GetByEmailAsync_NonExistingEmail_ReturnsNull()
+    {
+        var result = await _sut.GetByEmailAsync("nonexistent@example.com");
+
+        result.Should().BeNull();
+    }
+
     [Fact(DisplayName = "DeleteAsync should remove user")]
     public async Task DeleteAsync_ExistingUser_RemovesUser()
     {
@@ -105,6 +113,19 @@ public class UserRepositoryTests : IDisposable
 
         totalCount.Should().Be(2);
         items.Should().HaveCount(2);
+    }
+
+    [Fact(DisplayName = "GetAllAsync should respect pagination")]
+    public async Task GetAllAsync_WithPagination_ReturnsCorrectPage()
+    {
+        await _sut.CreateAsync(CreateUser());
+        await _sut.CreateAsync(CreateUser());
+        await _sut.CreateAsync(CreateUser());
+
+        var (items, totalCount) = await _sut.GetAllAsync(2, 2);
+
+        totalCount.Should().Be(3);
+        items.Should().HaveCount(1);
     }
 
     private static User CreateUser()

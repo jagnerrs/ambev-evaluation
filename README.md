@@ -7,6 +7,8 @@ API for managing sales records with full CRUD operations, built with DDD (Domain
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - [Docker](https://www.docker.com/) (for PostgreSQL database)
 - [Docker Compose](https://docs.docker.com/compose/) (included with Docker Desktop)
+ou
+- [WSL](learn.microsoft.com/pt-br/windows/wsl/install) (Linux)
 
 ## Configuration
 
@@ -65,6 +67,16 @@ dotnet ef database update --project src/Ambev.DeveloperEvaluation.ORM --startup-
 ### 3. Run the Application
 
 ```bash
+docker-compose up -d ambev.developerevaluation.webapi
+```
+
+The API will be available at:
+- HTTP: http://localhost:8080 
+- Swagger UI: http://localhost:8080/swagger
+
+ou
+
+```bash
 dotnet run --project src/Ambev.DeveloperEvaluation.WebApi
 ```
 
@@ -74,7 +86,9 @@ The API will be available at:
 
 ## Authentication
 
-The **Sales API** requires authentication via JWT Bearer token. The **Auth** and **Users** APIs are public for login and user registration.
+The **Sales API** and most **Users API** endpoints require authentication via JWT Bearer token. Only **Auth** (`POST /api/auth`) and **Create User** (`POST /api/users`) remain public for login and user registration.
+
+**Roles:** `Admin`, `Manager`, `Customer`. Some endpoints restrict access by role (e.g. Delete User requires Admin; List Users requires Admin or Manager).
 
 ### Obtaining a Token
 
@@ -111,7 +125,9 @@ Authorization: Bearer {seu_token}
 Run all tests:
 
 ```bash
-dotnet test
+dotnet test .\tests\Ambev.DeveloperEvaluation.Functional\Ambev.DeveloperEvaluation.Functional.csproj
+dotnet test .\tests\Ambev.DeveloperEvaluation.Integration\Ambev.DeveloperEvaluation.Integration.csproj
+dotnet test .\tests\Ambev.DeveloperEvaluation.Unit\Ambev.DeveloperEvaluation.Unit.csproj
 ```
 
 Run with coverage report:
@@ -140,13 +156,14 @@ coverage-report.bat
 }
 ```
 
-### Users API (Public)
+### Users API
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/users` | Create a new user |
-| GET | `/api/users/{id}` | Get user by ID |
-| DELETE | `/api/users/{id}` | Delete a user |
+| Method | Endpoint | Description | Authorization |
+|--------|----------|-------------|---------------|
+| POST | `/api/users` | Create a new user | **Public** |
+| GET | `/api/users` | List users (paginated, query: `page`, `pageSize`) | **Admin**, **Manager** |
+| GET | `/api/users/{id}` | Get user by ID | **Authenticated** (any role) |
+| DELETE | `/api/users/{id}` | Delete a user | **Admin** |
 
 ### Sales API (Requires Authentication)
 
